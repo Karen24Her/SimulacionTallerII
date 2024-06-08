@@ -85,7 +85,7 @@ class ParabolicMotionApp:
         self.tab3 = ttk.Frame(self.notebook)
 
         self.notebook.add(self.tab3, text="Animación")
-        self.notebook.add(self.tab1, text="Simulación")
+        self.notebook.add(self.tab1, text="Trayectoria")
         self.notebook.add(self.tab2, text="Resultados")
 
         self.figure, self.ax = plt.subplots()
@@ -109,18 +109,36 @@ class ParabolicMotionApp:
 
         # Cargar y redimensionar la imagen del conejo
         self.bunny_image = Image.open("conejo.png")
-        self.bunny_image = self.bunny_image.resize((100, 100), Image.Resampling.LANCZOS)  
+        self.bunny_image = self.bunny_image.resize((100, 100), Image.Resampling.LANCZOS)
         self.bunny_photo = ImageTk.PhotoImage(self.bunny_image)
 
         # Cargar y redimensionar la imagen de fondo
         self.bg_image = Image.open("fondo.jpg")
-        self.bg_image = self.bg_image.resize((1010, 750), Image.Resampling.LANCZOS)  
+        self.bg_image = self.bg_image.resize((1010, 750), Image.Resampling.LANCZOS)
         self.bg_photo = ImageTk.PhotoImage(self.bg_image)
 
         # Cargar y redimensionar la imagen de la casa
         self.house_image = Image.open("casa.png")
-        self.house_image = self.house_image.resize((50, 100), Image.Resampling.LANCZOS) 
+        self.house_image = self.house_image.resize((50, 100), Image.Resampling.LANCZOS)
         self.house_photo = ImageTk.PhotoImage(self.house_image)
+
+        # Crear recuadro para las anotaciones
+        self.annotation_frame = ttk.LabelFrame(self.tab1, text="Anotaciones")
+        self.annotation_frame.pack(side=tk.RIGHT, padx=10, pady=10, fill=tk.BOTH, expand=True)
+
+        # Crear tabla de anotaciones
+        self.annotation_table = ttk.Treeview(self.annotation_frame, columns=("Tipo", "Detalle"), show="headings")
+        self.annotation_table.heading("Tipo", text="Tipo")
+        self.annotation_table.heading("Detalle", text="Detalle")
+        self.annotation_table.column("Tipo", width=100, anchor=tk.CENTER)
+        self.annotation_table.column("Detalle", width=300, anchor=tk.W)
+
+        # Crear scrollbar para la tabla de anotaciones
+        self.scrollbar = ttk.Scrollbar(self.annotation_frame, orient="vertical", command=self.annotation_table.yview)
+        self.annotation_table.configure(yscroll=self.scrollbar.set)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        self.annotation_table.pack(fill=tk.BOTH, expand=True)
 
     def start_simulation(self):
         try:
@@ -189,13 +207,17 @@ class ParabolicMotionApp:
         self.ax.grid(True, which='both', linestyle='--', linewidth=0.5)
 
         # Añadir anotaciones para la altura máxima y los puntos de rebote
+        self.annotation_table.delete(*self.annotation_table.get_children())  # Limpiar la tabla de anotaciones
         for i, (x_pos, y_pos) in enumerate(positions):
             if y_pos in max_heights and y_pos > 0:
-                self.ax.annotate(f'Máxima Altura: {y_pos:.2f}', xy=(x_pos, y_pos), xytext=(x_pos + 0.5, y_pos + 0.5),
-                                 arrowprops=dict(facecolor='green', shrink=0.05), fontsize=10)
+                annotation_text = f'Máxima Altura en X={x_pos:.2f}: {y_pos:.2f}'
+                self.annotation_table.insert("", "end", values=("Altura Máxima", annotation_text))
+                self.ax.text(x_pos, y_pos, f'{y_pos:.2f}', fontsize=10, ha='right')
+
             if y_pos == 0 and x_pos != x0:
-                self.ax.annotate(f'Rebote en X: {x_pos:.2f}', xy=(x_pos, y_pos), xytext=(x_pos + 0.5, y_pos + 0.5),
-                                 arrowprops=dict(facecolor='red', shrink=0.05), fontsize=10)
+                annotation_text = f'Rebote en X={x_pos:.2f}'
+                self.annotation_table.insert("", "end", values=("Rebote", annotation_text))
+                self.ax.text(x_pos, y_pos, f'{x_pos:.2f}', fontsize=10, ha='right')
 
         self.ax.legend()
         self.canvas.draw()
@@ -234,6 +256,9 @@ class ParabolicMotionApp:
         # Limpiar la tabla de resultados
         for i in self.results_table.get_children():
             self.results_table.delete(i)
+
+        # Limpiar la tabla de anotaciones
+        self.annotation_table.delete(*self.annotation_table.get_children())
 
         # Limpiar la etiqueta de trayectoria
         self.trajectory_label.config(text="")
