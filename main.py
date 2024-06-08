@@ -1,7 +1,7 @@
-
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from PIL import Image, ImageTk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import random
@@ -76,6 +76,16 @@ class ParabolicMotionApp:
         self.animation_canvas = tk.Canvas(self.tab3, width=800, height=600, bg="white")
         self.animation_canvas.pack(fill=tk.BOTH, expand=True)
         
+        # Cargar y redimensionar la imagen del conejo
+        self.bunny_image = Image.open("conejo.png")
+        self.bunny_image = self.bunny_image.resize((50, 50), Image.Resampling.LANCZOS)  # Redimensiona a 50x50 píxeles
+        self.bunny_photo = ImageTk.PhotoImage(self.bunny_image)
+
+        # Cargar y redimensionar la imagen de fondo
+        self.bg_image = Image.open("fondo.jpg")
+        self.bg_image = self.bg_image.resize((800, 600), Image.Resampling.LANCZOS)  # Redimensiona a 800x600 píxeles
+        self.bg_photo = ImageTk.PhotoImage(self.bg_image)
+
     def start_simulation(self):
         try:
             x0 = float(self.x0_entry.get())
@@ -157,7 +167,11 @@ class ParabolicMotionApp:
     
     def animate_trajectory(self, positions):
         self.animation_canvas.delete("all")
-        bunny = self.animation_canvas.create_oval(0, 0, 20, 20, fill="grey")
+        
+        # Dibujar la imagen de fondo
+        self.animation_canvas.create_image(0, 0, image=self.bg_photo, anchor=tk.NW)
+        
+        bunny = self.animation_canvas.create_image(0, 0, image=self.bunny_photo, anchor=tk.NW)
         
         # Ajustar la escala de la animación al tamaño del canvas
         max_x = max(p[0] for p in positions)
@@ -169,7 +183,7 @@ class ParabolicMotionApp:
         for x, y in positions:
             scaled_x = x * scale_x
             scaled_y = 600 - (y * scale_y)  # Invertir el eje Y para que la animación sea correcta
-            self.animation_canvas.coords(bunny, scaled_x, scaled_y, scaled_x + 20, scaled_y + 20)
+            self.animation_canvas.coords(bunny, scaled_x, scaled_y)
             self.root.update()
             time.sleep(0.05)
 
