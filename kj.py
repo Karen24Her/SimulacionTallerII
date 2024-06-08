@@ -13,6 +13,10 @@ class ParabolicMotionApp:
         self.root = root
         self.root.title("Simulación de Movimiento Parabólico")
 
+        # Configurar la ventana para pantalla completa
+        self.root.attributes('-fullscreen', True)
+        self.root.bind("<Escape>", self.exit_fullscreen)
+
         self.style = ttk.Style()
         self.style.theme_use("clam")  # Puedes probar con 'default', 'clam', 'alt', 'classic'
 
@@ -27,6 +31,9 @@ class ParabolicMotionApp:
         self.style.map('Treeview.Heading', background=[('active', '#005f5f')])
 
         self.create_widgets()
+
+    def exit_fullscreen(self, event=None):
+        self.root.attributes('-fullscreen', False)
 
     def create_widgets(self):
         frame = ttk.Frame(self.root)
@@ -63,6 +70,9 @@ class ParabolicMotionApp:
 
         self.reset_button = ttk.Button(frame, text="Reiniciar", command=self.reset_simulation)
         self.reset_button.grid(row=7, columnspan=2, pady=10)
+
+        self.exit_button = ttk.Button(frame, text="Salir", command=self.root.quit)
+        self.exit_button.grid(row=8, columnspan=2, pady=10)
 
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
@@ -104,7 +114,7 @@ class ParabolicMotionApp:
 
         # Cargar y redimensionar la imagen de fondo
         self.bg_image = Image.open("fondo.jpg")
-        self.bg_image = self.bg_image.resize((1010, 670), Image.Resampling.LANCZOS)  
+        self.bg_image = self.bg_image.resize((1010, 750), Image.Resampling.LANCZOS)  
         self.bg_photo = ImageTk.PhotoImage(self.bg_image)
 
         # Cargar y redimensionar la imagen de la casa
@@ -201,8 +211,6 @@ class ParabolicMotionApp:
         self.results_table.insert("", "end", values=("Total", total_flight_time, total_max_height, total_displacement))
 
         self.animate_trajectory(positions, total_displacement)
-
-        messagebox.showinfo("Simulación Completa", "La simulación ha finalizado.")
 
     def reset_simulation(self):
         # Limpiar las entradas
