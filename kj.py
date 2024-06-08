@@ -96,18 +96,24 @@ class ParabolicMotionApp:
         max_heights = []
         displacements = []
         
+        max_height = y0
+        
         while y >= 0:
             t += wind_interval
             x += vx * wind_interval
             y += vy * wind_interval - 0.5 * g * wind_interval ** 2
             vy -= g * wind_interval
             
+            if y > max_height:
+                max_height = y
+            
             if y < 0:  # Rebote
                 y = 0
                 vy = -vy * 0.5  # Reducción de velocidad después del rebote
                 flight_times.append(t)
-                max_heights.append(max(y0, y))
+                max_heights.append(max_height)
                 displacements.append(x - x0)
+                max_height = y0  # Reiniciar la altura máxima para el siguiente rebote
                 if len(flight_times) >= 2:
                     break
             
