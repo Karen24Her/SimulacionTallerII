@@ -62,8 +62,12 @@ class ParabolicMotionApp:
         self.canvas = FigureCanvasTkAgg(self.figure, master=self.tab1)
         self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
         
-        self.results_text = tk.Text(self.tab2, wrap=tk.WORD)
-        self.results_text.pack(fill=tk.BOTH, expand=True)
+        self.results_table = ttk.Treeview(self.tab2, columns=("Rebote", "Tiempo de Vuelo", "Máxima Altura", "Desplazamiento"), show="headings")
+        self.results_table.heading("Rebote", text="Rebote")
+        self.results_table.heading("Tiempo de Vuelo", text="Tiempo de Vuelo")
+        self.results_table.heading("Máxima Altura", text="Máxima Altura")
+        self.results_table.heading("Desplazamiento", text="Desplazamiento")
+        self.results_table.pack(fill=tk.BOTH, expand=True)
         
     def start_simulation(self):
         try:
@@ -130,15 +134,15 @@ class ParabolicMotionApp:
         self.ax.set_title("Trayectoria de Movimiento Parabólico")
         self.canvas.draw()
         
-        results = f"Tiempo de vuelo de cada rebote: {flight_times}\n"
-        results += f"Tiempo de vuelo total: {total_flight_time}\n"
-        results += f"Máxima altura de cada rebote: {max_heights}\n"
-        results += f"Máxima altura total: {total_max_height}\n"
-        results += f"Desplazamiento de cada rebote: {displacements}\n"
-        results += f"Desplazamiento total: {total_displacement}\n"
+        # Limpiar la tabla antes de insertar nuevos resultados
+        for i in self.results_table.get_children():
+            self.results_table.delete(i)
         
-        self.results_text.delete(1.0, tk.END)
-        self.results_text.insert(tk.END, results)
+        for i, (time, height, displacement) in enumerate(zip(flight_times, max_heights, displacements), 1):
+            self.results_table.insert("", "end", values=(i, time, height, displacement))
+        
+        # Insertar los totales en la tabla
+        self.results_table.insert("", "end", values=("Total", total_flight_time, total_max_height, total_displacement))
         
         messagebox.showinfo("Simulación Completa", "La simulación ha finalizado.")
 

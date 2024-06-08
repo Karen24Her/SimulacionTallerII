@@ -1,122 +1,169 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
+from tkinter import ttk
+from tkinter import messagebox
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import random
 import math
+import time
 
-class MovimientoParabolicoApp(tk.Tk):
-    def __init__(self):
-        super().__init__()
-        self.title("Movimiento Parabólico")
-        self.geometry("800x600")
-
-        style = ttk.Style()
-        style.configure("TLabel", font=("Arial", 12))
-        style.configure("TEntry", font=("Arial", 12))
-        style.configure("TButton", font=("Arial", 12))
-
+class ParabolicMotionApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Simulación de Movimiento Parabólico")
+        
         self.create_widgets()
-
-        self.viento = {"magnitud": random.randint(0, 20), "angulo": random.randint(0, 360)}
-
+        
     def create_widgets(self):
-        self.create_label_entry("Posición inicial X0:", 0)
-        self.create_label_entry("Altura inicial Y0:", 1)
-        self.create_label_entry("Magnitud velocidad inicial:", 2)
-        self.create_label_entry("Ángulo velocidad inicial:", 3)
-        self.create_label_entry("Gravedad:", 4)
-        self.create_label_entry("Intervalo efecto del viento (T'):", 5)
+        frame = tk.Frame(self.root)
+        frame.pack(side=tk.LEFT, padx=10, pady=10)
+        
+        tk.Label(frame, text="Posición Inicial X0:").grid(row=0, column=0)
+        self.x0_entry = tk.Entry(frame)
+        self.x0_entry.grid(row=0, column=1)
+        
+        tk.Label(frame, text="Altura Inicial Y0:").grid(row=1, column=0)
+        self.y0_entry = tk.Entry(frame)
+        self.y0_entry.grid(row=1, column=1)
+        
+        tk.Label(frame, text="Magnitud Velocidad Inicial:").grid(row=2, column=0)
+        self.v0_entry = tk.Entry(frame)
+        self.v0_entry.grid(row=2, column=1)
+        
+        tk.Label(frame, text="Ángulo Velocidad Inicial:").grid(row=3, column=0)
+        self.angle_entry = tk.Entry(frame)
+        self.angle_entry.grid(row=3, column=1)
+        
+        tk.Label(frame, text="Gravedad:").grid(row=4, column=0)
+        self.gravity_entry = tk.Entry(frame)
+        self.gravity_entry.insert(0, "9.81")
+        self.gravity_entry.grid(row=4, column=1)
+        
+        tk.Label(frame, text="Intervalo Efecto del Viento T':").grid(row=5, column=0)
+        self.wind_interval_entry = tk.Entry(frame)
+        self.wind_interval_entry.insert(0, "0.1")
+        self.wind_interval_entry.grid(row=5, column=1)
+        
+        self.start_button = tk.Button(frame, text="Start", command=self.start_simulation)
+        self.start_button.grid(row=6, columnspan=2)
+        
+        self.notebook = ttk.Notebook(self.root)
+        self.notebook.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+        
+        self.create_tabs()
+        
+    def create_tabs(self):
+        self.tab1 = tk.Frame(self.notebook)
+        self.tab2 = tk.Frame(self.notebook)
+        self.tab3 = tk.Frame(self.notebook)
+        
+        self.notebook.add(self.tab1, text="Simulación")
+        self.notebook.add(self.tab2, text="Resultados")
+        self.notebook.add(self.tab3, text="Animación")
+        
+        self.figure, self.ax = plt.subplots()
+        self.canvas = FigureCanvasTkAgg(self.figure, master=self.tab1)
+        self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        
+        self.results_table = ttk.Treeview(self.tab2, columns=("Rebote", "Tiempo de Vuelo", "Máxima Altura", "Desplazamiento"), show="headings")
+        self.results_table.heading("Rebote", text="Rebote")
+        self.results_table.heading("Tiempo de Vuelo", text="Tiempo de Vuelo")
+        self.results_table.heading("Máxima Altura", text="Máxima Altura")
+        self.results_table.heading("Desplazamiento", text="Desplazamiento")
+        self.results_table.pack(fill=tk.BOTH, expand=True)
 
-        self.start_button = ttk.Button(self, text="Iniciar", command=self.start_simulation)
-        self.start_button.grid(row=6, column=0, columnspan=2, pady=10)
-
-        self.canvas = tk.Canvas(self, width=600, height=400, bg="white")
-        self.canvas.grid(row=7, column=0, columnspan=2, pady=10)
-
-        self.chart = ttk.Notebook(self)
-        self.chart.grid(row=8, column=0, columnspan=2)
-
-        self.chart_frame = ttk.Frame(self.chart)
-        self.chart.add(self.chart_frame, text="Gráfico")
-
-        self.table_frame = ttk.Frame(self.chart)
-        self.chart.add(self.table_frame, text="Tabla")
-
-        self.reiniciar_button = ttk.Button(self, text="Reiniciar", command=self.reiniciar)
-        self.reiniciar_button.grid(row=9, column=0, columnspan=2, pady=10)
-
-    def create_label_entry(self, text, row):
-        label = ttk.Label(self, text=text)
-        label.grid(row=row, column=0, sticky="e", padx=10, pady=5)
-        entry = ttk.Entry(self)
-        entry.grid(row=row, column=1, padx=10, pady=5)
-        setattr(self, f'entry_{row}', entry)
-
+        self.animation_canvas = tk.Canvas(self.tab3, width=800, height=600, bg="white")
+        self.animation_canvas.pack(fill=tk.BOTH, expand=True)
+        
     def start_simulation(self):
         try:
-            if any(not entry.get() for entry in [self.entry_0, self.entry_1, self.entry_2, self.entry_3, self.entry_4, self.entry_5]):
-                raise ValueError("Todos los campos deben ser llenados.")
-
-            self.x0 = float(self.entry_0.get())
-            self.y0 = float(self.entry_1.get())
-            self.v0 = float(self.entry_2.get())
-            self.angle = math.radians(float(self.entry_3.get()))
-            self.gravity = float(self.entry_4.get())
-            self.interval = float(self.entry_5.get())
-
-            self.time = 0
-            self.x_values = []
-            self.y_values = []
-
-            self.max_height_total = 0
-            self.displacement_total = 0
-            self.tiempo_vuelo_total = 0
-
-            self.simulate_step()
-        except ValueError as e:
-            messagebox.showerror("Error", str(e))
-
-    def simulate_step(self):
-        if self.y0 >= 0:
-            x = self.x0 + self.v0 * math.cos(self.angle) * self.time + self.viento["magnitud"] * math.cos(math.radians(self.viento["angulo"])) * self.time
-            y = self.y0 + self.v0 * math.sin(self.angle) * self.time - 0.5 * self.gravity * self.time ** 2
-
-            if y > self.max_height_total:
-                self.max_height_total = y
-
-            if y < 0:
+            x0 = float(self.x0_entry.get())
+            y0 = float(self.y0_entry.get())
+            v0 = float(self.v0_entry.get())
+            angle = float(self.angle_entry.get())
+            g = float(self.gravity_entry.get())
+            wind_interval = float(self.wind_interval_entry.get())
+        except ValueError:
+            messagebox.showerror("Error", "Por favor ingrese valores numéricos válidos.")
+            return
+        
+        vx0 = v0 * math.cos(math.radians(angle))
+        vy0 = v0 * math.sin(math.radians(angle))
+        
+        t = 0
+        x = x0
+        y = y0
+        vx = vx0
+        vy = vy0
+        
+        wind_speed = random.uniform(0, 20)
+        wind_angle = random.uniform(0, 360)
+        wind_vx = wind_speed * math.cos(math.radians(wind_angle))
+        wind_vy = wind_speed * math.sin(math.radians(wind_angle))
+        
+        positions = [(x, y)]
+        flight_times = []
+        max_heights = []
+        displacements = []
+        
+        max_height = y0
+        
+        while y >= 0:
+            t += wind_interval
+            x += vx * wind_interval
+            y += vy * wind_interval - 0.5 * g * wind_interval ** 2
+            vy -= g * wind_interval
+            
+            if y > max_height:
+                max_height = y
+            
+            if y < 0:  # Rebote
                 y = 0
-
-            self.x_values.append(x)
-            self.y_values.append(400 - y)
-
-            if len(self.x_values) > 1:
-                self.canvas.create_line(self.x_values[-2], self.y_values[-2], self.x_values[-1], self.y_values[-1], fill="blue")
-
-            self.time += 0.1
-
-            self.after(10, self.simulate_step)  # Llama a simulate_step cada 10ms para evitar el bloqueo de la interfaz
-        else:
-            self.update_table()
-
-    def update_table(self):
-        for widget in self.table_frame.winfo_children():
-            widget.destroy()
-
-        ttk.Label(self.table_frame, text="Tiempo de vuelo total:").grid(row=0, column=0)
-        ttk.Label(self.table_frame, text=f"{round(self.time, 2)} s").grid(row=0, column=1)
-
-        ttk.Label(self.table_frame, text="Máxima altura total:").grid(row=1, column=0)
-        ttk.Label(self.table_frame, text=f"{round(self.max_height_total, 2)} m").grid(row=1, column=1)
-
-        displacement_total = self.x_values[-1] if self.x_values else 0
-        ttk.Label(self.table_frame, text="Desplazamiento total:").grid(row=2, column=0)
-        ttk.Label(self.table_frame, text=f"{round(displacement_total, 2)} m").grid(row=2, column=1)
-
-    def reiniciar(self):
-        self.canvas.delete("all")
-        self.chart.select(self.chart_frame)
-        self.viento = {"magnitud": random.randint(0, 20), "angulo": random.randint(0, 360)}
+                vy = -vy * 0.5  # Reducción de velocidad después del rebote
+                flight_times.append(t)
+                max_heights.append(max_height)
+                displacements.append(x - x0)
+                max_height = y0  # Reiniciar la altura máxima para el siguiente rebote
+                if len(flight_times) >= 2:
+                    break
+            
+            positions.append((x, y))
+        
+        total_flight_time = sum(flight_times)
+        total_max_height = max(max_heights)
+        total_displacement = sum(displacements)
+        
+        self.ax.clear()
+        self.ax.plot([p[0] for p in positions], [p[1] for p in positions], marker='o')
+        self.ax.set_xlabel("X")
+        self.ax.set_ylabel("Y")
+        self.ax.set_title("Trayectoria de Movimiento Parabólico")
+        self.canvas.draw()
+        
+        # Limpiar la tabla antes de insertar nuevos resultados
+        for i in self.results_table.get_children():
+            self.results_table.delete(i)
+        
+        for i, (time, height, displacement) in enumerate(zip(flight_times, max_heights, displacements), 1):
+            self.results_table.insert("", "end", values=(i, time, height, displacement))
+        
+        # Insertar los totales en la tabla
+        self.results_table.insert("", "end", values=("Total", total_flight_time, total_max_height, total_displacement))
+        
+        self.animate_trajectory(positions)
+        
+        messagebox.showinfo("Simulación Completa", "La simulación ha finalizado.")
+    
+    def animate_trajectory(self, positions):
+        self.animation_canvas.delete("all")
+        bunny = self.animation_canvas.create_oval(0, 0, 20, 20, fill="grey")
+        
+        for x, y in positions:
+            self.animation_canvas.coords(bunny, x, 600 - y, x + 20, 600 - y + 20)
+            self.root.update()
+            time.sleep(0.05)
 
 if __name__ == "__main__":
-    app = MovimientoParabolicoApp()
-    app.mainloop()
+    root = tk.Tk()
+    app = ParabolicMotionApp(root)
+    root.mainloop()
