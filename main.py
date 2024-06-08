@@ -1,3 +1,4 @@
+
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
@@ -158,8 +159,17 @@ class ParabolicMotionApp:
         self.animation_canvas.delete("all")
         bunny = self.animation_canvas.create_oval(0, 0, 20, 20, fill="grey")
         
+        # Ajustar la escala de la animación al tamaño del canvas
+        max_x = max(p[0] for p in positions)
+        max_y = max(p[1] for p in positions)
+        
+        scale_x = 800 / max_x
+        scale_y = 600 / max_y
+        
         for x, y in positions:
-            self.animation_canvas.coords(bunny, x, 600 - y, x + 20, 600 - y + 20)
+            scaled_x = x * scale_x
+            scaled_y = 600 - (y * scale_y)  # Invertir el eje Y para que la animación sea correcta
+            self.animation_canvas.coords(bunny, scaled_x, scaled_y, scaled_x + 20, scaled_y + 20)
             self.root.update()
             time.sleep(0.05)
 
