@@ -101,6 +101,11 @@ class ParabolicMotionApp:
         self.bg_image = self.bg_image.resize((800, 600), Image.Resampling.LANCZOS)  # Redimensiona a 800x600 píxeles
         self.bg_photo = ImageTk.PhotoImage(self.bg_image)
 
+        # Cargar y redimensionar la imagen de la casa
+        self.house_image = Image.open("casa.png")
+        self.house_image = self.house_image.resize((100, 100), Image.Resampling.LANCZOS)  # Redimensiona a 100x100 píxeles
+        self.house_photo = ImageTk.PhotoImage(self.house_image)
+
     def start_simulation(self):
         try:
             x0 = float(self.x0_entry.get())
@@ -214,6 +219,12 @@ class ParabolicMotionApp:
             self.animation_canvas.coords(bunny, scaled_x, scaled_y)
             self.root.update()
             time.sleep(0.05)
+
+        # Colocar la imagen de la casa en la posición final del conejito
+        final_x, final_y = positions[-1]
+        scaled_final_x = final_x * scale_x
+        scaled_final_y = 600 - (final_y * scale_y)  # Invertir el eje Y para que la animación sea correcta
+        self.animation_canvas.create_image(scaled_final_x, scaled_final_y, image=self.house_photo, anchor=tk.NW)
 
 
 if __name__ == "__main__":
