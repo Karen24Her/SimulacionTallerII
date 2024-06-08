@@ -134,7 +134,7 @@ class ParabolicMotionApp:
                 max_heights.append(max_height)
                 displacements.append(x - x0)
                 max_height = y0  # Reiniciar la altura máxima para el siguiente rebote
-                if len(flight_times) >= 2:
+                if len(flight_times) >= 2:  # Limitar a 2 rebotes para evitar demasiadas iteraciones
                     break
 
             positions.append((x, y))
@@ -144,10 +144,23 @@ class ParabolicMotionApp:
         total_displacement = sum(displacements)
 
         self.ax.clear()
-        self.ax.plot([p[0] for p in positions], [p[1] for p in positions], marker='o')
-        self.ax.set_xlabel("X")
-        self.ax.set_ylabel("Y")
-        self.ax.set_title("Trayectoria de Movimiento Parabólico")
+        self.ax.plot([p[0] for p in positions], [p[1] for p in positions], marker='o', color='b', linestyle='-',
+                     linewidth=2, markersize=6, label="Trayectoria")
+        self.ax.set_xlabel("Desplazamiento (X)", fontsize=12)
+        self.ax.set_ylabel("Altura (Y)", fontsize=12)
+        self.ax.set_title("Trayectoria de Movimiento Parabólico", fontsize=14, fontweight='bold')
+        self.ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+
+        # Añadir anotaciones para la altura máxima y los puntos de rebote
+        for i, (x_pos, y_pos) in enumerate(positions):
+            if y_pos in max_heights and y_pos > 0:
+                self.ax.annotate(f'Máxima Altura: {y_pos:.2f}', xy=(x_pos, y_pos), xytext=(x_pos + 0.5, y_pos + 0.5),
+                                 arrowprops=dict(facecolor='green', shrink=0.05), fontsize=10)
+            if y_pos == 0 and x_pos != x0:
+                self.ax.annotate(f'Rebote en X: {x_pos:.2f}', xy=(x_pos, y_pos), xytext=(x_pos + 0.5, y_pos + 0.5),
+                                 arrowprops=dict(facecolor='red', shrink=0.05), fontsize=10)
+
+        self.ax.legend()
         self.canvas.draw()
 
         # Limpiar la tabla antes de insertar nuevos resultados
