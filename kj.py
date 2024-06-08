@@ -61,6 +61,9 @@ class ParabolicMotionApp:
         self.start_button = ttk.Button(frame, text="Start", command=self.start_simulation)
         self.start_button.grid(row=6, columnspan=2, pady=10)
 
+        self.reset_button = ttk.Button(frame, text="Reiniciar", command=self.reset_simulation)
+        self.reset_button.grid(row=7, columnspan=2, pady=10)
+
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
 
@@ -155,7 +158,7 @@ class ParabolicMotionApp:
                 max_heights.append(max_height)
                 displacements.append(x - x0)
                 max_height = y0  # Reiniciar la altura máxima para el siguiente rebote
-                if len(flight_times) >= 2:  # Limitar a 2 rebotes para evitar demasiadas iteraciones
+                if len(flight_times) >= 2:  # Limitar a 5 rebotes para evitar demasiadas iteraciones
                     break
 
             positions.append((x, y))
@@ -198,6 +201,29 @@ class ParabolicMotionApp:
 
         messagebox.showinfo("Simulación Completa", "La simulación ha finalizado.")
 
+
+    def reset_simulation(self):
+        # Limpiar las entradas
+        self.x0_entry.delete(0, tk.END)
+        self.y0_entry.delete(0, tk.END)
+        self.v0_entry.delete(0, tk.END)
+        self.angle_entry.delete(0, tk.END)
+        self.gravity_entry.delete(0, tk.END)
+        self.wind_interval_entry.delete(0, tk.END)
+        self.gravity_entry.insert(0, "9.81")
+        self.wind_interval_entry.insert(0, "0.1")
+
+        # Limpiar la gráfica
+        self.ax.clear()
+        self.ax.set_xlabel("Desplazamiento (X)", fontsize=12)
+        self.ax.set_ylabel("Altura (Y)", fontsize=12)
+        self.ax.set_title("Trayectoria de Movimiento Parabólico", fontsize=14, fontweight='bold')
+        self.ax.grid(True, which='both', linestyle='--', linewidth=0.5)
+        self.canvas.draw()
+
+        # Limpiar la tabla de resultados
+        for i in self.results_table.get_children():
+            self.results_table.delete(i)
     def animate_trajectory(self, positions):
         self.animation_canvas.delete("all")
 
@@ -225,6 +251,7 @@ class ParabolicMotionApp:
         scaled_final_x = final_x * scale_x
         scaled_final_y = 600 - (final_y * scale_y)  # Invertir el eje Y para que la animación sea correcta
         self.animation_canvas.create_image(scaled_final_x, scaled_final_y, image=self.house_photo, anchor=tk.NW)
+
 
 
 if __name__ == "__main__":
