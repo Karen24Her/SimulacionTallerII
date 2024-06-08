@@ -74,9 +74,9 @@ class ParabolicMotionApp:
         self.tab2 = ttk.Frame(self.notebook)
         self.tab3 = ttk.Frame(self.notebook)
 
+        self.notebook.add(self.tab3, text="Animación")
         self.notebook.add(self.tab1, text="Simulación")
         self.notebook.add(self.tab2, text="Resultados")
-        self.notebook.add(self.tab3, text="Animación")
 
         self.figure, self.ax = plt.subplots()
         self.canvas = FigureCanvasTkAgg(self.figure, master=self.tab1)
@@ -94,19 +94,22 @@ class ParabolicMotionApp:
         self.animation_canvas = tk.Canvas(self.tab3, width=800, height=600, bg="white")
         self.animation_canvas.pack(fill=tk.BOTH, expand=True)
 
+        self.trajectory_label = tk.Label(self.animation_canvas, text="", font=('Arial', 14), bg="white")
+        self.trajectory_label.pack(side=tk.TOP, pady=10)
+
         # Cargar y redimensionar la imagen del conejo
         self.bunny_image = Image.open("conejo.png")
-        self.bunny_image = self.bunny_image.resize((50, 50), Image.Resampling.LANCZOS)  # Redimensiona a 50x50 píxeles
+        self.bunny_image = self.bunny_image.resize((100, 100), Image.Resampling.LANCZOS)  
         self.bunny_photo = ImageTk.PhotoImage(self.bunny_image)
 
         # Cargar y redimensionar la imagen de fondo
         self.bg_image = Image.open("fondo.jpg")
-        self.bg_image = self.bg_image.resize((800, 600), Image.Resampling.LANCZOS)  # Redimensiona a 800x600 píxeles
+        self.bg_image = self.bg_image.resize((1010, 670), Image.Resampling.LANCZOS)  
         self.bg_photo = ImageTk.PhotoImage(self.bg_image)
 
         # Cargar y redimensionar la imagen de la casa
         self.house_image = Image.open("casa.png")
-        self.house_image = self.house_image.resize((100, 100), Image.Resampling.LANCZOS)  # Redimensiona a 100x100 píxeles
+        self.house_image = self.house_image.resize((50, 100), Image.Resampling.LANCZOS) 
         self.house_photo = ImageTk.PhotoImage(self.house_image)
 
     def start_simulation(self):
@@ -197,10 +200,9 @@ class ParabolicMotionApp:
         # Insertar los totales en la tabla
         self.results_table.insert("", "end", values=("Total", total_flight_time, total_max_height, total_displacement))
 
-        self.animate_trajectory(positions)
+        self.animate_trajectory(positions, total_displacement)
 
         messagebox.showinfo("Simulación Completa", "La simulación ha finalizado.")
-
 
     def reset_simulation(self):
         # Limpiar las entradas
@@ -224,7 +226,11 @@ class ParabolicMotionApp:
         # Limpiar la tabla de resultados
         for i in self.results_table.get_children():
             self.results_table.delete(i)
-    def animate_trajectory(self, positions):
+
+        # Limpiar la etiqueta de trayectoria
+        self.trajectory_label.config(text="")
+
+    def animate_trajectory(self, positions, total_displacement):
         self.animation_canvas.delete("all")
 
         # Dibujar la imagen de fondo
@@ -252,7 +258,8 @@ class ParabolicMotionApp:
         scaled_final_y = 600 - (final_y * scale_y)  # Invertir el eje Y para que la animación sea correcta
         self.animation_canvas.create_image(scaled_final_x, scaled_final_y, image=self.house_photo, anchor=tk.NW)
 
-
+        # Actualizar la etiqueta de trayectoria con la distancia total recorrida
+        self.trajectory_label.config(text=f"El conejito ha recorrido una distancia total de {total_displacement:.2f} unidades.")
 
 if __name__ == "__main__":
     root = tk.Tk()
