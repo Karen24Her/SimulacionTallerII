@@ -1,11 +1,12 @@
 import tkinter as tk
 from tkinter import ttk
 from tkinter import messagebox
+from PIL import Image, ImageTk
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import random
 import math
-
+import time
 
 class ParabolicMotionApp:
     def __init__(self, root):
@@ -71,9 +72,11 @@ class ParabolicMotionApp:
     def create_tabs(self):
         self.tab1 = ttk.Frame(self.notebook)
         self.tab2 = ttk.Frame(self.notebook)
+        self.tab3 = ttk.Frame(self.notebook)
 
         self.notebook.add(self.tab1, text="Simulación")
         self.notebook.add(self.tab2, text="Resultados")
+        self.notebook.add(self.tab3, text="Animación")
 
         self.figure, self.ax = plt.subplots()
         self.canvas = FigureCanvasTkAgg(self.figure, master=self.tab1)
@@ -87,6 +90,19 @@ class ParabolicMotionApp:
         self.results_table.heading("Máxima Altura", text="Máxima Altura")
         self.results_table.heading("Desplazamiento", text="Desplazamiento")
         self.results_table.pack(fill=tk.BOTH, expand=True)
+
+        self.animation_canvas = tk.Canvas(self.tab3, width=800, height=600, bg="white")
+        self.animation_canvas.pack(fill=tk.BOTH, expand=True)
+
+        # Cargar y redimensionar la imagen del conejo
+        self.bunny_image = Image.open("conejo.png")
+        self.bunny_image = self.bunny_image.resize((50, 50), Image.Resampling.LANCZOS)  # Redimensiona a 50x50 píxeles
+        self.bunny_photo = ImageTk.PhotoImage(self.bunny_image)
+
+        # Cargar y redimensionar la imagen de fondo
+        self.bg_image = Image.open("fondo.jpg")
+        self.bg_image = self.bg_image.resize((800, 600), Image.Resampling.LANCZOS)  # Redimensiona a 800x600 píxeles
+        self.bg_photo = ImageTk.PhotoImage(self.bg_image)
 
     def start_simulation(self):
         try:
@@ -176,7 +192,10 @@ class ParabolicMotionApp:
         # Insertar los totales en la tabla
         self.results_table.insert("", "end", values=("Total", total_flight_time, total_max_height, total_displacement))
 
+        self.animate_trajectory(positions)
+
         messagebox.showinfo("Simulación Completa", "La simulación ha finalizado.")
+
 
     def reset_simulation(self):
         # Limpiar las entradas
@@ -200,6 +219,28 @@ class ParabolicMotionApp:
         # Limpiar la tabla de resultados
         for i in self.results_table.get_children():
             self.results_table.delete(i)
+    def animate_trajectory(self, positions):
+        self.animation_canvas.delete("all")
+
+        # Dibujar la imagen de fondo
+        self.animation_canvas.create_image(0, 0, image=self.bg_photo, anchor=tk.NW)
+
+        bunny = self.animation_canvas.create_image(0, 0, image=self.bunny_photo, anchor=tk.NW)
+
+        # Ajustar la escala de la animación al tamaño del canvas
+        max_x = max(p[0] for p in positions)
+        max_y = max(p[1] for p in positions)
+
+        scale_x = 800 / max_x
+        scale_y = 600 / max_y
+
+        for x, y in positions:
+            scaled_x = x * scale_x
+            scaled_y = 600 - (y * scale_y)  # Invertir el eje Y para que la animación sea correcta
+            self.animation_canvas.coords(bunny, scaled_x, scaled_y)
+            self.root.update()
+            time.sleep(0.05)
+
 
 
 if __name__ == "__main__":
