@@ -264,7 +264,7 @@ class ParabolicMotionApp:
         final_x, final_y = positions[-1]
         scaled_final_x = final_x * scale_x
         scaled_final_y = 600 - (final_y * scale_y)  # Invertir el eje Y para que la animación sea correcta
-        self.animation_canvas.create_image(scaled_final_x, scaled_final_y, image=self.house_photo, anchor=tk.NW)
+        self.animation_canvas.create_image(scaled_final_x, scaled_final_y - 50, image=self.house_photo, anchor=tk.NW)
 
         # Actualizar la etiqueta de trayectoria con la distancia total recorrida
         self.trajectory_label.config(text=f"El conejito ha recorrido una distancia total de {total_displacement:.2f} unidades.")
