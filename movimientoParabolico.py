@@ -156,6 +156,10 @@ class ParabolicMotionApp:
             angle = float(self.angle_entry.get())
             g = float(self.gravity_entry.get())
             wind_interval = float(self.wind_interval_entry.get())
+
+            if g == 0 or wind_interval == 0:
+                messagebox.showerror("Error", "Los valores de gravedad y el intervalo del efecto del viento no pueden ser cero.")
+                return
         except ValueError:
             messagebox.showerror("Error", "Por favor ingrese valores numéricos válidos.")
             return
