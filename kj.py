@@ -30,6 +30,10 @@ class ParabolicMotionApp:
         self.style.configure('Treeview.Heading', font=('Arial', 12, 'bold'), background='#007f7f', foreground='white')
         self.style.map('Treeview.Heading', background=[('active', '#005f5f')])
 
+        # Estilos para las pestañas del Notebook
+        self.style.configure('TNotebook.Tab', font=('Arial', 12, 'bold'), padding=[10, 5], background='#005f5f', foreground='white')
+        self.style.map('TNotebook.Tab', background=[('selected', '#007f7f')], foreground=[('selected', 'white')])
+
         self.create_widgets()
 
     def exit_fullscreen(self, event=None):
@@ -76,6 +80,10 @@ class ParabolicMotionApp:
 
         self.notebook = ttk.Notebook(self.root)
         self.notebook.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True)
+
+        # Etiqueta con los nombres
+        self.names_label = ttk.Label(frame, text="Karen Julieth Hernandez Chaparro\nDeisy Carolina Monroy Gutierrez", font=('Arial', 12, 'bold'))
+        self.names_label.grid(row=9, columnspan=2, pady=10)
 
         self.create_tabs()
 
