@@ -18,7 +18,7 @@ class ParabolicMotionApp:
         self.root.bind("<Escape>", self.exit_fullscreen)
 
         self.style = ttk.Style()
-        self.style.theme_use("clam")  # Puedes probar con 'default', 'clam', 'alt', 'classic'
+        self.style.theme_use("classic")
 
         # Estilos personalizados
         self.style.configure('TFrame', background='#f0f0f0')
